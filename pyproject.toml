@@ -10,7 +10,7 @@ packages = [
     {include = "midi"},
     {include = "mtf"},
     {include = "okd"},
-    {include = "sprc_header"}
+    {include = "sprc"}
 ]
 
 [tool.poetry.scripts]

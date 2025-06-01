@@ -95,8 +95,8 @@ class OkdHeaderBase(ABC):
             optional_data,
         )
 
-    @abstractmethod
     @staticmethod
+    @abstractmethod
     def optional_data_buffer_size() -> int:
         """Size of Optional Data Buffer
 
