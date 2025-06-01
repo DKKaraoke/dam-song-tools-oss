@@ -138,6 +138,64 @@ NOTES
     You can also use flags syntax for POSITIONAL ARGUMENTS
 ```
 
+### dump-mtf
+
+Dump files contained in a MTF file
+
+```
+NAME
+    dam-song-tools dump-mtf - Dump files contained in a MTF file
+
+SYNOPSIS
+    dam-song-tools dump-mtf MTF_PATH OUTPUT_PATH
+
+DESCRIPTION
+    Dump files contained in a MTF file
+
+POSITIONAL ARGUMENTS
+    MTF_PATH
+        Type: str
+        Path to the MTF file
+    OUTPUT_PATH
+        Type: str
+        Path to extract the archive into
+
+NOTES
+    You can also use flags syntax for POSITIONAL ARGUMENTS
+```
+
+### mtf-to-audio
+
+Mix MTF file into "output.wav", "output.mid" files in extracted mtf folder
+
+```
+NAME
+    dam-song-tools mtf-to-audio - Mix MTF file into "output.wav", "output.mid" files in extracted mtf folder.
+
+SYNOPSIS
+    dam-song-tools mtf-to-audio MTF_PATH OUTPUT_PATH <flags>
+
+DESCRIPTION
+    Mix MTF file into "output.wav", "output.mid" files in extracted mtf folder.
+
+POSITIONAL ARGUMENTS
+    MTF_PATH
+        Type: str
+        Path to the MTF file
+    OUTPUT_PATH
+        Type: str
+        Path to extract the archive into, output will be saved inside
+
+FLAGS
+    -e, --export_each_file=EXPORT_EACH_FILE
+        Type: bool
+        Default: False
+        Whether to export each individual audio file (RawADPCM → .wav, OPUS → .ogg, etc...)
+
+NOTES
+    You can also use flags syntax for POSITIONAL ARGUMENTS
+```
+
 ## How to craete MIDI data for compose
 
 ### MIDI port and track map
@@ -166,10 +224,12 @@ Please check [the test data](test/data/p_track.mid).
 - DAM-XG5000[G,R] (LIVE DAM [(GOLD EDITION|RED TUNE)])
 - DAM-XG7000[Ⅱ] (LIVE DAM STADIUM [STAGE])
 - DAM-XG8000[R] (LIVE DAM Ai[R])
+- DAM-XG9000 (LIVE DAM WAO!)
 
 ## Authors
 
 - KIRISHIKI Yudai
+- 東京スーパーチャンネル
 
 ## Thanks
 

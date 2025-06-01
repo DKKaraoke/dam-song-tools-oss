@@ -10,6 +10,8 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     apt-get update && apt-get install -y --no-install-recommends \
     curl
 
+RUN apt-get update && apt-get install -y ffmpeg
+
 RUN groupadd -g $GID python \
     && useradd -m -s /bin/bash -u $UID -g $GID python
 
@@ -21,8 +23,10 @@ ENV PATH=/home/python/.local/bin:$PATH
 
 WORKDIR /app
 
-COPY pyproject.toml poetry.lock README.md /app/
+COPY pyproject.toml poetry.lock README.md settings.ini /app/
+COPY midi/ midi/
 COPY okd/ okd/
+COPY mtf/ mtf/
 COPY sprc_header/ sprc_header/
 COPY dam_song_tools_cli/ dam_song_tools_cli/
 

@@ -22,6 +22,12 @@ class SaitenRefEventType(Enum):
     NOTE_ON = 0x9E
     PLAY_MARK = 0xFF
 
+    @classmethod
+    def value_of(self, value: int):
+        for e in SaitenRefEventType:
+            if e.value == value:
+                return e
+
 
 class PlayMarkType(Enum):
     START_OF_SONG = 0x00
@@ -238,3 +244,55 @@ def midi_to_saiten_ref(midi: mido.MidiFile) -> list[SaitenRefEvent]:
     absolute_time_track.sort(key=lambda absolute_time_event: absolute_time_event.time)
 
     return absolute_time_track
+
+def saiten_ref_to_midi(saiten_ref_events: list[SaitenRefEvent], ticks_per_beat: int = 480) -> mido.MidiFile:
+    midi = mido.MidiFile(ticks_per_beat=ticks_per_beat)
+    melody_track = mido.MidiTrack()
+    melody_track.append(mido.MetaMessage("midi_port", port=1))
+    melody_track.append(mido.MetaMessage('set_tempo', tempo=mido.bpm2tempo(125.0)))
+    m_track = mido.MidiTrack()
+    m_track.append(mido.MetaMessage("midi_port", port=16))
+    m_track.append(mido.MetaMessage('set_tempo', tempo=mido.bpm2tempo(125.0)))
+    midi.tracks.append(melody_track)
+    midi.tracks.append(m_track)
+
+    midi_time_converter = MidiTimeConverter()
+    midi_time_converter.ticks_per_beat = ticks_per_beat
+    midi_time_converter.add_tempo_change(0, 125.0)
+
+    melody_events = []
+    m_events = []
+
+    for event in saiten_ref_events:
+        ticks = int(midi_time_converter.ms_to_ticks(event.time))
+
+        if event.event_type == SaitenRefEventType.NOTE_ON:
+            melody_events.append((ticks, mido.Message("note_on", note=event.note_number, velocity=event.value, time=0, channel=8)))
+        elif event.event_type == SaitenRefEventType.NOTE_OFF:
+            melody_events.append((ticks, mido.Message("note_off", note=event.note_number, velocity=event.value, time=0, channel=8)))
+        elif event.event_type == SaitenRefEventType.PLAY_MARK:
+            note = None
+            if event.value == PlayMarkType.START_OF_SABI.value:
+                note = 48
+                m_events.append((ticks, mido.Message("note_on", note=note, velocity=100, time=0, channel=0)))
+            elif event.value == PlayMarkType.END_OF_SABI.value:
+                note = 48
+                m_events.append((ticks, mido.Message("note_off", note=note, velocity=100, time=0, channel=0)))
+            elif event.value == PlayMarkType.SECOND_CHORUS_FADEOUT.value:
+                note = 72
+                m_events.append((ticks, mido.Message("note_on", note=note, velocity=100, time=0, channel=0)))
+                m_events.append((ticks + 10, mido.Message("note_off", note=note, velocity=100, time=0, channel=0)))
+
+    def insert_track_messages(track, sorted_events):
+        """Sorts events and calculates delta"""
+        sorted_events.sort(key=lambda x: x[0])
+        last_tick = 0
+        for tick, msg in sorted_events:
+            msg.time = tick - last_tick
+            track.append(msg)
+            last_tick = tick
+
+    insert_track_messages(melody_track, melody_events)
+    insert_track_messages(m_track, m_events)
+
+    return midi
