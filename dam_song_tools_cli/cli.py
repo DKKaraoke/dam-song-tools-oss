@@ -12,6 +12,7 @@ from okd import (
     YksOkdHeader,
     OkdFile,
     GenericChunk,
+    YkyiChunk,
     MTrackInterpretation,
     MTrackChunk,
     PTrackInfoChunk,
@@ -65,6 +66,51 @@ class Cli:
         Cli.__config_logger(log_level)
         self.__logger = logging.getLogger(__name__)
 
+    def song_info(self, okd_path, output_json: bool = False) -> None:
+        """Show song information (YKYI chunk) from a OKD file
+
+        Args:
+            okd_path (str): Input OKD path
+            output_json (bool): Output as JSON format. Defaults to False.
+
+        Raises:
+            ValueError: Argument `okd_path` must be str.
+        """
+
+        if not isinstance(okd_path, str):
+            raise ValueError("Argument `okd_path` must be str.")
+
+        with open(okd_path, "rb") as okd_file:
+            okd_file = OkdFile.read(okd_file)
+
+            ykyi_chunk = None
+            for chunk in okd_file.chunks:
+                if isinstance(chunk, YkyiChunk):
+                    ykyi_chunk = chunk
+                    break
+
+            if ykyi_chunk is None:
+                print("YKYI chunk not found in the OKD file.")
+                return
+
+            if output_json:
+                output = json.dumps(
+                    ykyi_chunk.to_json_serializable(),
+                    indent=2,
+                    ensure_ascii=False,
+                )
+                print(output)
+            else:
+                print("=" * 50)
+                print("楽曲情報 (Song Information)")
+                print("=" * 50)
+                for entry in ykyi_chunk.entries:
+                    if entry.key:
+                        print(f"{entry.key}: {entry.value}")
+                    else:
+                        print(f"  {entry.value}")
+                print("=" * 50)
+
     def dump_okd(self, okd_path, output_dir_path) -> None:
         """Dump chunks of a OKD
 
@@ -101,6 +147,15 @@ class Cli:
                     with open(output_path, "wb") as output_file:
                         output_file.write(chunk.id)
                         output_file.write(chunk.payload)
+                elif isinstance(chunk, YkyiChunk):
+                    output_path = os.path.join(output_dir_path, "ykyi_info.json")
+                    output_json = json.dumps(
+                        chunk.to_json_serializable(),
+                        indent=2,
+                        ensure_ascii=False,
+                    )
+                    with open(output_path, "w", encoding="utf-8") as output_file:
+                        output_file.write(output_json)
                 elif isinstance(chunk, MTrackChunk):
                     m_track_interpritation = MTrackInterpretation.from_track(chunk)
 

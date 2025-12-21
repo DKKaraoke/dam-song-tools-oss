@@ -1,6 +1,7 @@
 from typing import BinaryIO
 
 from .generic_chunk import GenericChunk
+from .ykyi_chunk import YkyiChunk
 from .p_track_info_chunk import (
     PTrackInfoChannelInfoEntry,
     PTrackInfoEntry,
@@ -29,7 +30,9 @@ def read_chunk(stream: BinaryIO) -> OkdChunk:
     """
     generic = GenericChunk.read(stream)
 
-    if generic.id == b"YPTI":
+    if generic.id == b"YKYI":
+        return YkyiChunk.from_generic(generic)
+    elif generic.id == b"YPTI":
         return PTrackInfoChunk.from_generic(generic)
     elif generic.id == b"YP3I":
         return P3TrackInfoChunk.from_generic(generic)

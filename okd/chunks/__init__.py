@@ -1,5 +1,6 @@
 from .chunk_base import ChunkBase
 from .generic_chunk import GenericChunk
+from .ykyi_chunk import YkyiInfoEntry, YkyiChunk
 from .p_track_info_chunk import (
     PTrackInfoChannelInfoEntry,
     PTrackInfoEntry,
