@@ -10,7 +10,26 @@ class MidiTimeConverter:
         self.tempo_changes: list[tuple[int, float]] = []
 
     def add_tempo_change(self, position_ms: int, tempo_bpm: float):
-        """Add a tempo change event at the specified position."""
+        """Add a tempo change event at the specified position.
+        
+        If a tempo change already exists at the same position, it will be replaced.
+        
+        Parameters:
+            position_ms (int): Position in milliseconds (must be >= 0)
+            tempo_bpm (float): Tempo in BPM (must be > 0)
+        
+        Raises:
+            ValueError: If position_ms is negative or tempo_bpm is not positive
+        """
+        if position_ms < 0:
+            raise ValueError("position_ms must be non-negative")
+        if tempo_bpm <= 0:
+            raise ValueError("tempo_bpm must be positive")
+        
+        # Remove existing entry at the same position (if any)
+        self.tempo_changes = [
+            (pos, tempo) for pos, tempo in self.tempo_changes if pos != position_ms
+        ]
         self.tempo_changes.append((position_ms, tempo_bpm))
         # Keep tempo changes sorted by position
         self.tempo_changes.sort(key=lambda x: x[0])
@@ -53,7 +72,19 @@ class MidiTimeConverter:
                     )
 
     def ms_to_ticks(self, time_ms: int) -> int:
-        """Convert milliseconds to MIDI ticks"""
+        """Convert milliseconds to MIDI ticks
+        
+        Parameters:
+            time_ms (int): Time in milliseconds (must be >= 0)
+        
+        Returns:
+            int: Time in MIDI ticks
+        
+        Raises:
+            ValueError: If time_ms is negative or no tempo information is available
+        """
+        if time_ms < 0:
+            raise ValueError("time_ms must be non-negative")
         if not self.tempo_changes:
             raise ValueError("No tempo information available")
 
@@ -61,7 +92,7 @@ class MidiTimeConverter:
 
         # Handle time before first tempo change
         if time_ms < self.tempo_changes[0][0]:
-            return self._calculate_ticks_at_tempo(time_ms, self.tempo_changes[0][1])
+            return round(self._calculate_ticks_at_tempo(time_ms, self.tempo_changes[0][1]))
 
         # Process each tempo section
         for i in range(len(self.tempo_changes)):
@@ -93,8 +124,20 @@ class MidiTimeConverter:
         microseconds = duration_ms * 1000
         return (microseconds / microseconds_per_beat) * self.ppqn
 
-    def ticks_to_ms(self, ticks: int):
-        """Convert MIDI ticks to milliseconds"""
+    def ticks_to_ms(self, ticks: int) -> int:
+        """Convert MIDI ticks to milliseconds
+        
+        Parameters:
+            ticks (int): Time in MIDI ticks (must be >= 0)
+        
+        Returns:
+            int: Time in milliseconds
+        
+        Raises:
+            ValueError: If ticks is negative or no tempo information is available
+        """
+        if ticks < 0:
+            raise ValueError("ticks must be non-negative")
         if not self.tempo_changes:
             raise ValueError("No tempo information available")
 
